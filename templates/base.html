@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es-co">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treddy - {% block title %}Inicio{% endblock %}</title>
+    <!-- Carga de Bootstrap Local -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        /* Estilos básicos para la SPA */
+        body {
+            background-color: #f8f9fa;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar Menú (Vertical) -->
+        <nav class="sidebar col-md-3 col-lg-2 d-md-block collapse">
+            <div class="position-sticky pt-3">
+                <h4 class="text-white text-center py-3">Treddy</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link spa-link" href="#" data-url="{% url 'dashboard' %}">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link spa-link" href="#" data-url="{% url 'productos_list' %}">
+                            Productos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger mt-5" href="{% url 'logout' %}">
+                            Cerrar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" id="main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Bienvenido, {{ user.first_name }} ({{ user.tipo_usuario }})</h1>
+            </div>
+            
+            <!-- Aquí se inyectará el contenido de la SPA -->
+            <div id="spa-container">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap JS Local -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    
+    <!-- Script para comportamiento SPA -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const links = document.querySelectorAll('.spa-link');
+            const container = document.getElementById('spa-container');
+
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('data-url');
+                    if(url) {
+                        fetch(url, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => {
+                            if(response.redirected) {
+                                window.location.href = response.url;
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            container.innerHTML = html;
+                        })
+                        .catch(err => console.error("Error cargando vista SPA: ", err));
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
