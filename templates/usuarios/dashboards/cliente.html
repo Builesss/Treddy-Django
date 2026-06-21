@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Cliente{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Mi Perfil</h2>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Mis Pedidos Recientes</h5>
+                <p class="card-text text-muted">No tienes pedidos pendientes.</p>
+                <button class="btn btn-primary mt-3">Ir a Catálogo</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Direcciones Guardadas</h5>
+                <p class="card-text text-muted">1 dirección configurada.</p>
+                <button class="btn btn-outline-secondary mt-3">Gestionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

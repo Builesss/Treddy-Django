@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Panel de Control General</h2>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Usuarios Registrados</h5>
+                <p class="card-text fs-2">24</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <h5 class="card-title">Ventas Totales</h5>
+                <p class="card-text fs-2">$1,250.00</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <h5 class="card-title">Productos Bajos en Stock</h5>
+                <p class="card-text fs-2">5</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
