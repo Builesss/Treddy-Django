@@ -156,6 +156,16 @@ body {
     border: 1px solid var(--treddy-border) !important;
     color: var(--treddy-muted) !important;
 }
+/* Fix para input-group con el form-control border-radius !important */
+.input-group > .form-control:not(:first-child),
+.input-group > .form-select:not(:first-child) {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+.input-group > .input-group-text:not(:last-child) {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
 
 /* ── Botones ──────────────────────────────────────────────────── */
 .btn-primary {
