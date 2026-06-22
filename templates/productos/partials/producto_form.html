@@ -49,14 +49,31 @@
                     <label class="form-label">Estado</label>
                     {% render_field form.estado class="form-select" %}
                 </div>
-                <div class="col-12">
-                    <label class="form-label">Imagen</label>
-                    {% render_field form.imagen class="form-control" %}
-                    <div class="form-text" style="color:var(--treddy-muted);">JPG, PNG o WebP. Tamaño recomendado: 800×800px.</div>
+                <div class="col-12 mt-4">
+                    <label class="form-label mb-2 fw-bold" style="color:var(--treddy-cyan);">📸 Imagen del Producto</label>
+                    <div class="row align-items-center">
+                        <div class="col-md-4 mb-3 mb-md-0 text-center">
+                            <!-- Preview Container -->
+                            <div class="img-preview-container" style="width:120px;height:120px;margin:0 auto;">
+                                {% if producto and producto.imagen %}
+                                <img id="imagePreview" src="{{ producto.imagen.url }}" style="width:100%;height:100%;object-fit:cover;">
+                                {% else %}
+                                <img id="imagePreview" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                                <span id="imagePreviewIcon" style="font-size:2.5rem;color:var(--treddy-muted);">🖼️</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            {% render_field form.imagen class="form-control" id="imageInput" accept="image/*" %}
+                            <div class="form-text mt-2" style="color:var(--treddy-muted);font-size:0.8rem;">
+                                Sube una imagen en formato JPG, PNG o WebP. El tamaño recomendado es de 800×800px para evitar distorsión en la tienda.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="d-flex gap-3 mt-4">
+            <div class="d-flex gap-3 mt-5">
                 <button type="button" class="btn btn-light flex-fill spa-link" data-url="{% url 'productos_list' %}">
                     Cancelar
                 </button>
@@ -102,8 +119,33 @@
             document.getElementById('spa-container').innerHTML = html;
             if (typeof bindSPALinks === 'function') bindSPALinks();
         })
-        .catch(err => console.error('Error guardando producto:', err));
+        .catch(err => {
+            console.error('Error guardando producto:', err);
+            if (typeof Toast !== 'undefined') {
+                Toast.fire({ icon: 'error', title: 'Error al procesar la solicitud' });
+            }
+        });
     });
+
+    // ── Image Preview Logic ──
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewIcon = document.getElementById('imagePreviewIcon');
+
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    if (imagePreviewIcon) imagePreviewIcon.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 
     // Bind spa-links locales
     if (typeof bindSPALinks === 'function') bindSPALinks();

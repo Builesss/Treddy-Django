@@ -7,6 +7,11 @@
     {% load static %}
     <!-- Bootstrap 5 local -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    
+    <!-- SweetAlert2 (UX Alerts) & NProgress (SPA Loader) -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
+    
     <!-- Treddy Design System -->
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
@@ -75,17 +80,13 @@
             <span class="badge-role">{{ user.tipo_usuario }}</span>
         </div>
 
-        <!-- Flash messages globales -->
-        {% if messages %}
-        <div class="px-4 pt-3">
-            {% for message in messages %}
-            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            {% endfor %}
+        <!-- Topbar -->
+        <div class="topbar d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">
+                Bienvenido, <span style="color:var(--treddy-cyan);">{{ user.first_name }}</span>
+            </h1>
+            <span class="badge-role">{{ user.tipo_usuario }}</span>
         </div>
-        {% endif %}
 
         <!-- SPA Container -->
         <div id="spa-container" class="p-4">
@@ -96,8 +97,39 @@
 
 <!-- Bootstrap JS local -->
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<!-- SweetAlert2 & NProgress JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.8/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
 
-<!-- ════ Partículas (AnimatedBackground replicado del frontend original) ════ -->
+<!-- ════ Treddy Toast (SweetAlert2) Global Config ════ -->
+<script>
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: '#0F173A',
+    color: '#E2E8F0',
+    iconColor: '#00E6F6',
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
+// Capturar mensajes de Django y mostrarlos como Toasts
+{% if messages %}
+    {% for message in messages %}
+        Toast.fire({
+            icon: '{% if message.tags == "error" %}error{% elif message.tags == "warning" %}warning{% elif message.tags == "info" %}info{% else %}success{% endif %}',
+            title: '{{ message|escapejs }}'
+        });
+    {% endfor %}
+{% endif %}
+</script>
+
+<!-- ════ Partículas (AnimatedBackground) ════ -->
 <script>
 (function() {
     const canvas = document.getElementById('particles-canvas');
@@ -155,9 +187,13 @@
 })();
 </script>
 
-<!-- ════ Router SPA Global ════ -->
+<!-- ════ Router SPA Global + NProgress ════ -->
 <script>
+NProgress.configure({ showSpinner: false, speed: 400, minimum: 0.1 });
+
 function loadSPA(url) {
+    NProgress.start(); // Iniciar barra de carga
+    
     fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(r => {
             if (r.redirected) { window.location.href = r.url; return null; }
@@ -165,17 +201,27 @@ function loadSPA(url) {
         })
         .then(html => {
             if (html === null) return;
-            document.getElementById('spa-container').innerHTML = html;
-            window.history.pushState({ url }, '', url);
-            // Re-bind any new spa-links injected in the fragment
-            bindSPALinks();
+            // Animación de entrada suave
+            const container = document.getElementById('spa-container');
+            container.style.opacity = '0';
+            setTimeout(() => {
+                container.innerHTML = html;
+                window.history.pushState({ url }, '', url);
+                bindSPALinks();
+                container.style.transition = 'opacity 0.3s ease';
+                container.style.opacity = '1';
+                NProgress.done(); // Finalizar barra de carga
+            }, 150);
         })
-        .catch(err => console.error('SPA error:', err));
+        .catch(err => {
+            console.error('SPA error:', err);
+            NProgress.done();
+            Toast.fire({ icon: 'error', title: 'Error cargando la página' });
+        });
 }
 
 function bindSPALinks() {
     document.querySelectorAll('.spa-link[data-url]').forEach(el => {
-        // Avoid double-binding
         if (el.dataset.spabound) return;
         el.dataset.spabound = '1';
         el.addEventListener('click', function(e) {
@@ -187,7 +233,6 @@ function bindSPALinks() {
 
 document.addEventListener('DOMContentLoaded', bindSPALinks);
 
-// Handle browser back/forward
 window.addEventListener('popstate', e => {
     if (e.state && e.state.url) loadSPA(e.state.url);
 });

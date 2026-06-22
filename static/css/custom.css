@@ -336,3 +336,63 @@ body {
 
 /* ── Border utility ─────────────────────────────────────────── */
 .border-bottom { border-color: var(--treddy-border) !important; }
+
+/* ── NProgress (SPA Loader) ──────────────────────────────────── */
+#nprogress .bar {
+    background: var(--treddy-cyan) !important;
+    height: 3px !important;
+}
+#nprogress .peg {
+    box-shadow: 0 0 10px var(--treddy-cyan), 0 0 5px var(--treddy-cyan) !important;
+}
+
+/* ── SweetAlert2 (Dark Theme Treddy) ─────────────────────────── */
+.swal2-popup {
+    background: var(--treddy-panel) !important;
+    border: 1px solid var(--treddy-border) !important;
+    color: var(--treddy-text) !important;
+    border-radius: var(--treddy-radius) !important;
+    box-shadow: 0 0 40px rgba(0, 230, 246, 0.1) !important;
+}
+.swal2-title { color: var(--treddy-text) !important; font-family: 'Inter', sans-serif !important; }
+.swal2-html-container { color: var(--treddy-muted) !important; }
+.swal2-confirm {
+    background: var(--treddy-grad) !important;
+    border-radius: 50px !important;
+    color: #000 !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 2rem !important;
+}
+.swal2-cancel {
+    background: transparent !important;
+    border: 1px solid var(--treddy-border) !important;
+    color: var(--treddy-muted) !important;
+    border-radius: 50px !important;
+    padding: 0.6rem 2rem !important;
+}
+.swal2-cancel:hover { background: var(--treddy-card) !important; }
+
+/* ── UI enhancements ────────────────────────────────────────── */
+.treddy-card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.treddy-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 230, 246, 0.12) !important;
+    border-color: rgba(0, 230, 246, 0.4) !important;
+}
+.img-preview-container {
+    background: var(--treddy-card);
+    border: 2px dashed var(--treddy-border);
+    border-radius: var(--treddy-radius);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.2s ease;
+}
+.img-preview-container:hover {
+    border-color: var(--treddy-cyan);
+    background: rgba(0, 230, 246, 0.03);
+}
