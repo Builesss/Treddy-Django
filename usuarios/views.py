@@ -29,18 +29,36 @@ class CustomLoginView(LoginView):
 
 
 # ──────────────────────────────────────────────────────────────
-# Dashboard — Patrón Strategy: delegación por rol
+# Dashboard — Patrón Strategy: delegación por rol + stats reales
 # ──────────────────────────────────────────────────────────────
 @login_required
 def dashboard_view(request):
+    from productos.models import Producto
+    from .models import Usuario
+
     user = request.user
+    context = {'user': user}
+
     if user.tipo_usuario == 'Administrador':
         template = 'usuarios/dashboards/admin.html'
+        context.update({
+            'total_usuarios':       Usuario.objects.count(),
+            'usuarios_activos':     Usuario.objects.filter(estado='Activo').count(),
+            'total_productos':      Producto.objects.filter(estado='activo').count(),
+            'productos_bajo_stock': Producto.objects.filter(stock__lt=5).count(),
+        })
     elif user.tipo_usuario == 'Vendedor':
         template = 'usuarios/dashboards/vendedor.html'
+        context.update({
+            'total_productos':      Producto.objects.count(),
+            'productos_activos':    Producto.objects.filter(estado='activo').count(),
+            'productos_bajo_stock': Producto.objects.filter(stock__lt=5).count(),
+            'categorias':           Producto.objects.values('categoria').distinct().count(),
+        })
     else:
         template = 'usuarios/dashboards/cliente.html'
-    return render(request, template, {'user': user})
+
+    return render(request, template, context)
 
 
 # ──────────────────────────────────────────────────────────────
