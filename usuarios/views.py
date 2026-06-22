@@ -37,10 +37,12 @@ def dashboard_view(request):
     from .models import Usuario
 
     user = request.user
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     context = {'user': user}
 
     if user.tipo_usuario == 'Administrador':
-        template = 'usuarios/dashboards/admin.html'
+        full_tpl    = 'usuarios/dashboards/admin.html'
+        partial_tpl = 'usuarios/dashboards/partials/admin.html'
         context.update({
             'total_usuarios':       Usuario.objects.count(),
             'usuarios_activos':     Usuario.objects.filter(estado='Activo').count(),
@@ -48,7 +50,8 @@ def dashboard_view(request):
             'productos_bajo_stock': Producto.objects.filter(stock__lt=5).count(),
         })
     elif user.tipo_usuario == 'Vendedor':
-        template = 'usuarios/dashboards/vendedor.html'
+        full_tpl    = 'usuarios/dashboards/vendedor.html'
+        partial_tpl = 'usuarios/dashboards/partials/vendedor.html'
         context.update({
             'total_productos':      Producto.objects.count(),
             'productos_activos':    Producto.objects.filter(estado='activo').count(),
@@ -56,8 +59,11 @@ def dashboard_view(request):
             'categorias':           Producto.objects.values('categoria').distinct().count(),
         })
     else:
-        template = 'usuarios/dashboards/cliente.html'
+        full_tpl    = 'usuarios/dashboards/cliente.html'
+        partial_tpl = 'usuarios/dashboards/partials/cliente.html'
 
+    # SPA: devolvemos solo el fragmento si es AJAX
+    template = partial_tpl if is_ajax else full_tpl
     return render(request, template, context)
 
 
