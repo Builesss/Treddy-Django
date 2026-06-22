@@ -1,0 +1,53 @@
+<div class="card shadow border-danger border-2 rounded-4 mx-auto" style="max-width: 500px; margin-top: 10vh;">
+    <div class="card-header bg-danger text-white rounded-top-3 border-bottom-0 pt-4 pb-3 text-center">
+        <h3 class="fw-bold mb-0">⚠️ Confirmar Eliminación</h3>
+    </div>
+    <div class="card-body text-center py-5">
+        <p class="fs-5 mb-4">¿Estás completamente seguro de que deseas eliminar el producto <br><strong class="fs-4">{{ producto.nombre }}</strong>?</p>
+        <p class="text-muted small">Esta acción no se puede deshacer, aunque quedará registrada en la bitácora de auditoría.</p>
+        
+        <form id="delete-form" method="POST">
+            {% csrf_token %}
+            <div class="mt-4 d-flex justify-content-center gap-3">
+                <button type="button" class="btn btn-light border rounded-pill px-4 spa-link" data-url="{% url 'productos_list' %}">Cancelar</button>
+                <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">Sí, Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('#delete-form .spa-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-url');
+            if(url) {
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => document.getElementById('spa-container').innerHTML = html);
+            }
+        });
+    });
+
+    document.getElementById('delete-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: new FormData(this),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => {
+            if(response.redirected) {
+                return fetch("{% url 'productos_list' %}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                       .then(r => r.text());
+            }
+            return response.text();
+        })
+        .then(html => {
+            document.getElementById('spa-container').innerHTML = html;
+            window.history.pushState({}, "", "{% url 'productos_list' %}");
+        })
+        .catch(err => console.error(err));
+    });
+</script>

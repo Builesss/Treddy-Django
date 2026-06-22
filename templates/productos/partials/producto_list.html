@@ -1,0 +1,56 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Productos</h2>
+    <a href="#" data-url="{% url 'producto_create' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm spa-link">
+        + Nuevo Producto
+    </a>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for producto in productos %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0 rounded-4" style="transition: transform 0.2s; cursor: pointer;">
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" class="card-img-top rounded-top-4" alt="{{ producto.nombre }}" style="object-fit: cover; height: 180px;">
+            {% else %}
+                <div class="bg-light text-secondary d-flex align-items-center justify-content-center card-img-top rounded-top-4" style="height: 180px;">
+                    <small>Sin Imagen</small>
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title fw-bold text-truncate mb-0" title="{{ producto.nombre }}">{{ producto.nombre }}</h5>
+                    <span class="badge {% if producto.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill">
+                        {{ producto.estado|title }}
+                    </span>
+                </div>
+                <p class="card-text text-muted small mb-1">{{ producto.categoria|default:"Sin categoría" }}</p>
+                <p class="card-text text-primary fw-bold fs-5 mb-1">${{ producto.precio_base }}</p>
+                <p class="card-text small text-secondary">Stock disponible: {{ producto.stock }}</p>
+            </div>
+            <div class="card-footer bg-white border-top-0 rounded-bottom-4 d-flex justify-content-between">
+                <button data-url="{% url 'producto_update' producto.pk %}" class="btn btn-sm btn-outline-primary rounded-pill w-100 me-2 spa-link">Editar</button>
+                <button data-url="{% url 'producto_delete' producto.pk %}" class="btn btn-sm btn-outline-danger rounded-pill w-100 spa-link">Eliminar</button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted fs-5">No hay productos registrados en el inventario.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    // Delegación de eventos para la carga dinámica SPA dentro de este fragmento
+    document.querySelectorAll('#spa-container .spa-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-url');
+            if(url) {
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => document.getElementById('spa-container').innerHTML = html);
+            }
+        });
+    });
+</script>

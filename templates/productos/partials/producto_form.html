@@ -1,0 +1,96 @@
+{% load widget_tweaks %}
+<div class="card shadow-sm border-0 rounded-4 mx-auto" style="max-width: 600px;">
+    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+        <h3 class="fw-bold">{{ action }} Producto</h3>
+    </div>
+    <div class="card-body">
+        <!-- SPA Form submission -->
+        <form id="producto-form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Nombre</label>
+                    {% render_field form.nombre class="form-control rounded-3" %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Descripción</label>
+                    {% render_field form.descripcion class="form-control rounded-3" rows="3" %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Precio Base</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">$</span>
+                        {% render_field form.precio_base class="form-control rounded-end-3" %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Stock</label>
+                    {% render_field form.stock class="form-control rounded-3" %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Categoría</label>
+                    {% render_field form.categoria class="form-control rounded-3" %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Estado</label>
+                    {% render_field form.estado class="form-select rounded-3" %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Imagen del Producto</label>
+                    {% render_field form.imagen class="form-control rounded-3" %}
+                </div>
+            </div>
+            
+            <div class="mt-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light rounded-pill px-4 spa-link" data-url="{% url 'productos_list' %}">Cancelar</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Handlers for cancel button and form submission via AJAX
+    document.querySelectorAll('#producto-form .spa-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const url = this.getAttribute('data-url');
+            if(url) {
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => document.getElementById('spa-container').innerHTML = html);
+            }
+        });
+    });
+
+    document.getElementById('producto-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        // Reconstruimos la URL basado en la acción (si es editar o crear)
+        // En una SPA real, la URL de envío debe coincidir con la vista
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                // csrf is handled by the hidden input in formData
+            }
+        })
+        .then(response => {
+            if(response.redirected) {
+                // If the server redirects, we can't easily fetch the redirected content transparently
+                // So we manually fetch the products list to simulate redirect
+                return fetch("{% url 'productos_list' %}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                       .then(r => r.text());
+            }
+            return response.text();
+        })
+        .then(html => {
+            document.getElementById('spa-container').innerHTML = html;
+            // Update URL bar without reloading
+            window.history.pushState({}, "", "{% url 'productos_list' %}");
+        })
+        .catch(err => console.error(err));
+    });
+</script>
