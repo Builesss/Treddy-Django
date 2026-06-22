@@ -1,56 +1,85 @@
+<!-- ── Cabecera ─────────────────────────────────────────────────── -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Gestión de Productos</h2>
-    <a href="#" data-url="{% url 'producto_create' %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm spa-link">
+    <div>
+        <h2 class="fw-bold mb-0" style="color:var(--treddy-text);">Gestión de Productos</h2>
+        <p class="mb-0" style="color:var(--treddy-muted);font-size:0.85rem;">Inventario actualizado del sistema</p>
+    </div>
+    <button class="btn btn-primary px-4 spa-link" data-url="{% url 'producto_create' %}">
         + Nuevo Producto
-    </a>
+    </button>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+<!-- ── Alerta de estado ─────────────────────────────────────────── -->
+{% if request.GET.ok %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    ✅ Operación realizada correctamente.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- ── Grid de tarjetas ─────────────────────────────────────────── -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
     {% for producto in productos %}
     <div class="col">
-        <div class="card h-100 shadow-sm border-0 rounded-4" style="transition: transform 0.2s; cursor: pointer;">
+        <div class="card h-100">
+            <!-- Imagen -->
             {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" class="card-img-top rounded-top-4" alt="{{ producto.nombre }}" style="object-fit: cover; height: 180px;">
+                <img src="{{ producto.imagen.url }}"
+                     class="card-img-top"
+                     alt="{{ producto.nombre }}"
+                     style="object-fit:cover;height:170px;border-radius:var(--treddy-radius) var(--treddy-radius) 0 0;">
             {% else %}
-                <div class="bg-light text-secondary d-flex align-items-center justify-content-center card-img-top rounded-top-4" style="height: 180px;">
-                    <small>Sin Imagen</small>
+                <div class="d-flex align-items-center justify-content-center"
+                     style="height:170px;background:var(--treddy-panel);border-radius:var(--treddy-radius) var(--treddy-radius) 0 0;border-bottom:1px solid var(--treddy-border);">
+                    <span style="font-size:2.5rem;">📦</span>
                 </div>
             {% endif %}
+
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h5 class="card-title fw-bold text-truncate mb-0" title="{{ producto.nombre }}">{{ producto.nombre }}</h5>
-                    <span class="badge {% if producto.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} rounded-pill">
+                    <h5 class="card-title fw-bold mb-0" style="font-size:0.95rem;" title="{{ producto.nombre }}">
+                        {{ producto.nombre|truncatechars:22 }}
+                    </h5>
+                    <span class="badge {% if producto.estado == 'activo' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %}"
+                          style="font-size:0.7rem;border-radius:50px;padding:0.2rem 0.6rem;">
                         {{ producto.estado|title }}
                     </span>
                 </div>
-                <p class="card-text text-muted small mb-1">{{ producto.categoria|default:"Sin categoría" }}</p>
-                <p class="card-text text-primary fw-bold fs-5 mb-1">${{ producto.precio_base }}</p>
-                <p class="card-text small text-secondary">Stock disponible: {{ producto.stock }}</p>
+                <p style="color:var(--treddy-muted);font-size:0.78rem;margin-bottom:0.4rem;">
+                    {{ producto.categoria|default:"Sin categoría" }}
+                </p>
+                <p style="color:var(--treddy-cyan);font-size:1.25rem;font-weight:700;margin-bottom:0.25rem;">
+                    ${{ producto.precio_base }}
+                </p>
+                <p style="color:var(--treddy-muted);font-size:0.78rem;">
+                    Stock: {{ producto.stock }} unidades
+                </p>
             </div>
-            <div class="card-footer bg-white border-top-0 rounded-bottom-4 d-flex justify-content-between">
-                <button data-url="{% url 'producto_update' producto.pk %}" class="btn btn-sm btn-outline-primary rounded-pill w-100 me-2 spa-link">Editar</button>
-                <button data-url="{% url 'producto_delete' producto.pk %}" class="btn btn-sm btn-outline-danger rounded-pill w-100 spa-link">Eliminar</button>
+
+            <div class="card-footer d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm flex-fill spa-link"
+                        data-url="{% url 'producto_update' producto.pk %}">
+                    ✏️ Editar
+                </button>
+                <button class="btn btn-outline-danger btn-sm flex-fill spa-link"
+                        data-url="{% url 'producto_delete' producto.pk %}">
+                    🗑️ Eliminar
+                </button>
             </div>
         </div>
     </div>
     {% empty %}
     <div class="col-12 text-center py-5">
-        <p class="text-muted fs-5">No hay productos registrados en el inventario.</p>
+        <p style="font-size:3rem;margin-bottom:0.5rem;">📭</p>
+        <p style="color:var(--treddy-muted);">No hay productos en el inventario aún.</p>
+        <button class="btn btn-primary mt-2 spa-link" data-url="{% url 'producto_create' %}">
+            Agregar primer producto
+        </button>
     </div>
     {% endfor %}
 </div>
 
 <script>
-    // Delegación de eventos para la carga dinámica SPA dentro de este fragmento
-    document.querySelectorAll('#spa-container .spa-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = this.getAttribute('data-url');
-            if(url) {
-                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(r => r.text())
-                .then(html => document.getElementById('spa-container').innerHTML = html);
-            }
-        });
-    });
+// Re-bind SPA links para elementos inyectados en este fragmento
+if (typeof bindSPALinks === 'function') bindSPALinks();
 </script>

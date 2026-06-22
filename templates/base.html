@@ -3,103 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treddy - {% block title %}Inicio{% endblock %}</title>
-    <!-- Carga de Bootstrap Local -->
+    <title>Treddy — {% block title %}Dashboard{% endblock %}</title>
     {% load static %}
+    <!-- Bootstrap 5 local -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <style>
-        /* Estilos básicos para la SPA */
-        body {
-            background-color: #f8f9fa;
-        }
-        .sidebar {
-            min-height: 100vh;
-            background-color: #343a40;
-        }
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            padding: 15px;
-            display: block;
-        }
-        .sidebar a:hover {
-            background-color: #495057;
-        }
-    </style>
+    <!-- Treddy Design System -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
 <body>
-    <div class="d-flex">
-        <!-- Sidebar Menú (Vertical) -->
-        <nav class="sidebar col-md-3 col-lg-2 d-md-block collapse">
-            <div class="position-sticky pt-3">
-                <h4 class="text-white text-center py-3">Treddy</h4>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link spa-link" href="#" data-url="{% url 'dashboard' %}">
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link spa-link" href="#" data-url="{% url 'productos_list' %}">
-                            Productos
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger mt-5" href="{% url 'logout' %}">
-                            Cerrar Sesión
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
 
-        <!-- Contenido Principal -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" id="main-content">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">Bienvenido, {{ user.first_name }} ({{ user.tipo_usuario }})</h1>
-            </div>
-            
-            <!-- Aquí se inyectará el contenido de la SPA -->
-            <div id="spa-container">
-                {% block content %}
-                {% endblock %}
-            </div>
-        </main>
-    </div>
+<!-- Canvas de partículas (fondo animado del proyecto original) -->
+<canvas id="particles-canvas"></canvas>
 
-    <!-- Bootstrap JS Local -->
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    
-    <!-- Script para comportamiento SPA -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const links = document.querySelectorAll('.spa-link');
-            const container = document.getElementById('spa-container');
+<div class="d-flex" style="min-height:100vh;">
 
-            links.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const url = this.getAttribute('data-url');
-                    if(url) {
-                        fetch(url, {
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        })
-                        .then(response => {
-                            if(response.redirected) {
-                                window.location.href = response.url;
-                            }
-                            return response.text();
-                        })
-                        .then(html => {
-                            container.innerHTML = html;
-                        })
-                        .catch(err => console.error("Error cargando vista SPA: ", err));
-                    }
-                });
-            });
+    <!-- ════════════ SIDEBAR ════════════ -->
+    <nav class="sidebar d-flex flex-column" style="width:230px; min-width:230px; min-height:100vh; position:sticky; top:0;">
+        <a class="sidebar-brand" href="{% url 'dashboard' %}">⚡ Treddy</a>
+        <hr class="border-bottom mx-3 my-0">
+
+        <ul class="nav flex-column flex-grow-1 mt-2 px-1">
+            <li class="nav-item">
+                <a class="nav-link spa-link" href="#" data-url="{% url 'dashboard' %}">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.293l5 5V13a1 1 0 0 1-1 1H9v-4H7v4H3a1 1 0 0 1-1-1V8.293l5-5z"/><path d="M7.293 1.5a1 1 0 0 1 1.414 0l6.647 6.646a.5.5 0 0 1-.708.708L8 2.207 1.354 8.854a.5.5 0 1 1-.708-.708L7.293 1.5z"/></svg>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link spa-link" href="#" data-url="{% url 'productos_list' %}">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5z"/></svg>
+                    Productos
+                </a>
+            </li>
+            {% if user.tipo_usuario == 'Administrador' %}
+            <li class="nav-item">
+                <a class="nav-link spa-link" href="#" data-url="{% url 'registro' %}">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4"/><path d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/></svg>
+                    Registrar Usuario
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <!-- Perfil + Logout en el fondo del sidebar -->
+        <div class="px-3 py-3 border-top" style="border-color: var(--treddy-border) !important;">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--treddy-grad);display:flex;align-items:center;justify-content:center;font-weight:700;color:#000;font-size:0.8rem;flex-shrink:0;">
+                    {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                </div>
+                <div style="overflow:hidden;">
+                    <div style="font-size:0.8rem;font-weight:600;color:var(--treddy-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        {{ user.first_name }} {{ user.last_name }}
+                    </div>
+                    <div style="font-size:0.7rem;color:var(--treddy-muted);">{{ user.tipo_usuario }}</div>
+                </div>
+            </div>
+            <a class="nav-link text-danger d-flex align-items-center gap-2" href="{% url 'logout' %}">
+                <svg width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/><path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/></svg>
+                Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <!-- ════════════ MAIN CONTENT ════════════ -->
+    <main class="flex-grow-1" style="overflow-x:hidden;">
+        <!-- Topbar -->
+        <div class="topbar d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">
+                Bienvenido, <span style="color:var(--treddy-cyan);">{{ user.first_name }}</span>
+            </h1>
+            <span class="badge-role">{{ user.tipo_usuario }}</span>
+        </div>
+
+        <!-- Flash messages globales -->
+        {% if messages %}
+        <div class="px-4 pt-3">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- SPA Container -->
+        <div id="spa-container" class="p-4">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<!-- Bootstrap JS local -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+<!-- ════ Partículas (AnimatedBackground replicado del frontend original) ════ -->
+<script>
+(function() {
+    const canvas = document.getElementById('particles-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let raf;
+
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x  = Math.random() * canvas.width;
+            this.y  = Math.random() * canvas.height;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = (Math.random() - 0.5) * 0.3;
+            this.r  = Math.random() * 2 + 1.5;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            if (this.x < 0 || this.x > canvas.width)  this.vx *= -1;
+            if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#00E6F6';
+            ctx.fill();
+        }
+    }
+
+    const N = 100, pts = Array.from({length: N}, () => new Particle());
+    const animate = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pts.forEach(p => { p.update(); p.draw(); });
+        for (let i = 0; i < N; i++) {
+            for (let j = i + 1; j < N; j++) {
+                const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 110) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(0,230,246,${0.12 * (1 - d/110)})`;
+                    ctx.lineWidth = 1;
+                    ctx.moveTo(pts[i].x, pts[i].y);
+                    ctx.lineTo(pts[j].x, pts[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+        raf = requestAnimationFrame(animate);
+    };
+    animate();
+})();
+</script>
+
+<!-- ════ Router SPA Global ════ -->
+<script>
+function loadSPA(url) {
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => {
+            if (r.redirected) { window.location.href = r.url; return null; }
+            return r.text();
+        })
+        .then(html => {
+            if (html === null) return;
+            document.getElementById('spa-container').innerHTML = html;
+            window.history.pushState({ url }, '', url);
+            // Re-bind any new spa-links injected in the fragment
+            bindSPALinks();
+        })
+        .catch(err => console.error('SPA error:', err));
+}
+
+function bindSPALinks() {
+    document.querySelectorAll('.spa-link[data-url]').forEach(el => {
+        // Avoid double-binding
+        if (el.dataset.spabound) return;
+        el.dataset.spabound = '1';
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadSPA(this.dataset.url);
         });
-    </script>
+    });
+}
+
+document.addEventListener('DOMContentLoaded', bindSPALinks);
+
+// Handle browser back/forward
+window.addEventListener('popstate', e => {
+    if (e.state && e.state.url) loadSPA(e.state.url);
+});
+</script>
+
 </body>
 </html>

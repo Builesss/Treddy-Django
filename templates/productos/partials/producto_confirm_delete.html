@@ -1,53 +1,58 @@
-<div class="card shadow border-danger border-2 rounded-4 mx-auto" style="max-width: 500px; margin-top: 10vh;">
-    <div class="card-header bg-danger text-white rounded-top-3 border-bottom-0 pt-4 pb-3 text-center">
-        <h3 class="fw-bold mb-0">⚠️ Confirmar Eliminación</h3>
+<div class="card mx-auto border-danger" style="max-width:480px;border-width:2px !important;">
+    <div class="card-header text-center" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);">
+        <p style="font-size:2.5rem;margin-bottom:0.25rem;">⚠️</p>
+        <h4 class="fw-bold mb-0" style="color:#fca5a5;">Confirmar Eliminación</h4>
     </div>
     <div class="card-body text-center py-5">
-        <p class="fs-5 mb-4">¿Estás completamente seguro de que deseas eliminar el producto <br><strong class="fs-4">{{ producto.nombre }}</strong>?</p>
-        <p class="text-muted small">Esta acción no se puede deshacer, aunque quedará registrada en la bitácora de auditoría.</p>
-        
-        <form id="delete-form" method="POST">
+        <p style="color:var(--treddy-text);font-size:1.05rem;" class="mb-1">
+            ¿Seguro que deseas eliminar
+        </p>
+        <p class="fw-bold mb-3" style="color:var(--treddy-cyan);font-size:1.2rem;">
+            {{ producto.nombre }}
+        </p>
+        <p class="mb-4" style="color:var(--treddy-muted);font-size:0.85rem;">
+            Esta acción es irreversible. El registro quedará en la bitácora de auditoría del sistema.
+        </p>
+
+        <form id="spa-delete-form" method="POST"
+              action="{% url 'producto_delete' producto.pk %}">
             {% csrf_token %}
-            <div class="mt-4 d-flex justify-content-center gap-3">
-                <button type="button" class="btn btn-light border rounded-pill px-4 spa-link" data-url="{% url 'productos_list' %}">Cancelar</button>
-                <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">Sí, Eliminar</button>
+            <div class="d-flex gap-3 justify-content-center">
+                <button type="button" class="btn btn-light px-5 spa-link"
+                        data-url="{% url 'productos_list' %}">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-danger px-5">
+                    Sí, eliminar
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-    document.querySelectorAll('#delete-form .spa-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const url = this.getAttribute('data-url');
-            if(url) {
-                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(r => r.text())
-                .then(html => document.getElementById('spa-container').innerHTML = html);
-            }
-        });
-    });
+(function() {
+    const form = document.getElementById('spa-delete-form');
+    if (!form) return;
 
-    document.getElementById('delete-form').addEventListener('submit', function(e) {
+    form.addEventListener('submit', function(e) {
         e.preventDefault();
-        
-        fetch(window.location.pathname, {
+        fetch(form.getAttribute('action'), {
             method: 'POST',
-            body: new FormData(this),
+            body: new FormData(form),
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(response => {
-            if(response.redirected) {
-                return fetch("{% url 'productos_list' %}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                       .then(r => r.text());
+        .then(r => {
+            // Tras eliminar Django redirige → cargamos lista
+            if (typeof loadSPA === 'function') {
+                loadSPA("{% url 'productos_list' %}?ok=1");
+            } else {
+                window.location.href = "{% url 'productos_list' %}";
             }
-            return response.text();
         })
-        .then(html => {
-            document.getElementById('spa-container').innerHTML = html;
-            window.history.pushState({}, "", "{% url 'productos_list' %}");
-        })
-        .catch(err => console.error(err));
+        .catch(err => console.error('Error eliminando:', err));
     });
+
+    if (typeof bindSPALinks === 'function') bindSPALinks();
+})();
 </script>
